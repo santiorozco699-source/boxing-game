@@ -1,108 +1,50 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Simple Boxing Game</title>
-  <style>
-    body {
-      background: #222;
-      color: white;
-      text-align: center;
-      font-family: Arial, sans-serif;
+using UnityEngine;
+
+public class PlayerController : MonoBehaviour
+{
+    public float moveSpeed = 5f;
+    public Animator animator;
+    public int maxHealth = 100;
+    public int currentHealth;
+
+    void Start()
+    {
+        currentHealth = maxHealth;
     }
-    canvas {
-      background: #eee;
-      border: 3px solid #000;
-      margin-top: 10px;
+
+    void Update()
+    {
+        // Player Movement
+        float h = Input.GetAxis("Horizontal");
+        float v = Input.GetAxis("Vertical");
+        Vector3 move = new Vector3(h, 0, v);
+        transform.Translate(move * moveSpeed * Time.deltaTime, Space.World);
+
+        // Animation
+        if (move.magnitude > 0)
+            animator.SetBool("isWalking", true);
+        else
+            animator.SetBool("isWalking", false);
+
+        // Punches
+        if (Input.GetKeyDown(KeyCode.J))
+            animator.SetTrigger("Jab");
+        if (Input.GetKeyDown(KeyCode.K))
+            animator.SetTrigger("Cross");
+        if (Input.GetKeyDown(KeyCode.L))
+            animator.SetTrigger("Hook");
     }
-    #instructions {
-      margin: 10px 0;
+
+    // Damage system
+    public void TakeDamage(int damage)
+    {
+        currentHealth -= damage;
+        if (currentHealth <= 0)
+        {
+            currentHealth = 0;
+            animator.SetTrigger("Knockout");
+            Debug.Log("Player is knocked out!");
+        }
     }
-  </style>
-</head>
-<body>
-
-<h1>🥊 Simple Boxing Game</h1>
-<div id="instructions">Press A to Punch, D to Block, R to Restart</div>
-<canvas id="game" width="600" height="300"></canvas>
-
-<script>
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-
-let playerHealth = 100;
-let enemyHealth = 100;
-let blocking = false;
-let gameOver = false;
-
-function drawBoxer(x, color) {
-  ctx.fillStyle = color;
-  ctx.fillRect(x, 120, 40, 80); // body
-  ctx.fillRect(x + 5, 100, 30, 20); // head
 }
 
-function drawHealth() {
-  // Player health (blue)
-  ctx.fillStyle = "blue";
-  ctx.fillRect(50, 20, playerHealth * 2, 10);
-  
-  // Enemy health (red)
-  ctx.fillStyle = "red";
-  ctx.fillRect(350, 20, enemyHealth * 2, 10);
-}
-
-function enemyAttack() {
-  if (gameOver) return;
-  if (Math.random() < 0.6) {
-    if (!blocking) playerHealth -= 10;
-  }
-}
-
-function checkWin() {
-  if (playerHealth <= 0) {
-    gameOver = true;
-    alert("You lost! 💥");
-  } else if (enemyHealth <= 0) {
-    gameOver = true;
-    alert("You win! 🏆");
-  }
-}
-
-document.addEventListener("keydown", e => {
-  if (gameOver && e.key === "r") {
-    // Restart game
-    playerHealth = 100;
-    enemyHealth = 100;
-    gameOver = false;
-  } else if (!gameOver) {
-    if (e.key === "a") {
-      // Punch
-      enemyHealth -= 10;
-      enemyAttack();
-      checkWin();
-    } else if (e.key === "d") {
-      // Block
-      blocking = true;
-    }
-  }
-});
-
-document.addEventListener("keyup", e => {
-  if (e.key === "d") blocking = false;
-});
-
-function gameLoop() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  drawBoxer(100, "blue");   // Player
-  drawBoxer(450, "red");    // Enemy
-  drawHealth();
-
-  requestAnimationFrame(gameLoop);
-}
-
-gameLoop();
-</script>
-
-</body>
-</html>
