@@ -1,0 +1,54 @@
+using UnityEngine;
+using UnityEngine.AI; // Only if using NavMeshAgent
+
+public class OpponentAI : MonoBehaviour
+{
+    public Transform player;
+    public Animator animator;
+    public int maxHealth = 100;
+    public int currentHealth;
+    public float moveSpeed = 3f;
+    public float attackDistance = 2f;
+
+    void Start()
+    {
+        currentHealth = maxHealth;
+    }
+
+    void Update()
+    {
+        float distance = Vector3.Distance(transform.position, player.position);
+
+        if (distance > attackDistance)
+        {
+            // Move toward player
+            Vector3 direction = (player.position - transform.position).normalized;
+            transform.Translate(direction * moveSpeed * Time.deltaTime, Space.World);
+            animator.SetBool("isWalking", true);
+        }
+        else
+        {
+            // Attack player
+            animator.SetBool("isWalking", false);
+            int punch = Random.Range(0, 3);
+            switch(punch)
+            {
+                case 0: animator.SetTrigger("Jab"); break;
+                case 1: animator.SetTrigger("Cross"); break;
+                case 2: animator.SetTrigger("Hook"); break;
+            }
+        }
+    }
+
+    public void TakeDamage(int damage)
+    {
+        currentHealth -= damage;
+        if (currentHealth <= 0)
+        {
+            currentHealth = 0;
+            animator.SetTrigger("Knockout");
+            Debug.Log("Opponent is knocked out!");
+        }
+    }
+}
+
